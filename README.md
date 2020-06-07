@@ -1,0 +1,140 @@
+# Interactive Plot
+
+### Purpose
+
+This Python script allows you to quickly create a Graphical User Interface
+to a figure plotting 1-D function, given a set of parameters. The parameters
+are then represented as sliders below the figure, and you can then see how
+the function changes as a function of the parameters.
+
+The function can be anything, even the outcome of a complicated model. As
+long as you can package your model into a Python function, with a 1-D
+coordinate x as input, as well as one or more parameters (say, a, b and c),
+and one or more values as output.
+
+The purpose of interactive_plot.py is to make it easier to investigate how the
+results of simple (= quick-to-calculate) models are dependent on the parameters.
+
+### Examples
+
+#### Example 1 (a simple function with one parameter):
+
+    from interactive_plot import *
+    def func(x,param): return param[0]*np.sin(param[1]*x)
+    x      = np.linspace(0,2*np.pi,100)
+    params = [np.linspace(0.1,1.,30),np.linspace(1.,3.,30)] # Choices of parameter values
+    interactive_plot(x, func, params, ymax=1., ymin=-1., parnames=['A = ','omega = '])
+
+#### Example 1-a (As above, but now with a plotting button instead of automatic replot; useful for heavier models):
+
+    from interactive_plot import *
+    def func(x,param): return param[0]*np.sin(param[1]*x)
+    x      = np.linspace(0,2*np.pi,100)
+    params = [np.linspace(0.1,1.,30),np.linspace(1.,3.,30)] # Choices of parameter values
+    interactive_plot(x, func, params, ymax=1., ymin=-1., parnames=['A = ','omega = '],plotbutton=True)
+
+#### EXAMPLE 1-b (Plotting the content of a pre-calculated 2-D array):
+
+    from interactive_plot import *
+    x       = np.linspace(0,2*np.pi,100)
+    y_array = np.zeros((30,100))
+    omega   = np.linspace(1,3.,30)
+    for i in range(30): y_array[i,:] = np.sin(omega[i]*x)
+    def func(x,param): return y_array[param[0],:]
+    params  = [np.arange(30)] # Choices of parameter values
+    interactive_plot(x, func, params)
+
+#### EXAMPLE 2 (Model fitting to data):
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from interactive_plot import *
+    def func(x,param): return param[0]*np.sin(param[1]*x)
+    x        = np.linspace(0,2*np.pi,100)
+    data     = 0.5*np.sin(2.*x)*(1.0+0.6*np.random.normal(size=len(x)))
+    fig      = plt.figure(1)
+    ax       = plt.axes(xlim=(x.min(),x.max()),ylim=(-1.2,1.2))
+    axd,     = ax.plot(x,data,'o',label='data')
+    plt.xlabel('x [cm]')
+    plt.ylabel('f [erg/s]')
+    params   = [np.linspace(0.1,1.,30),np.linspace(1.,3.,30)] # Choices of parameter values
+    parstart = [0.6,2.0]  # Initial guesses for parameters
+    interactive_plot(x, func, params, parnames=['A = ','omega = '], fig=fig, ax=ax, label='model',parstart=parstart)
+    ax.legend()
+    plt.show()
+
+#### EXAMPLE 2-a (Model overplotting over an image):
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib import cm
+    from interactive_plot import *
+    def func(x,param): return param[0]*np.sin(param[1]*x)
+    x        = np.linspace(0,2*np.pi,100)
+    image    = np.random.normal(size=(70,70)) # Make some image
+    fig      = plt.figure(1)
+    extent   = [x.min(),x.max(),-1.2,1.2]
+    axd      = plt.imshow(image,extent=extent,cmap=cm.hot)
+    ax       = plt.gca()
+    plt.axis(extent)
+    plt.xlabel('x [cm]')
+    plt.ylabel('f [erg/s]')
+    params   = [np.linspace(0.1,1.,30),np.linspace(1.,3.,30)] # Choices of parameter values
+    parstart = [0.6,2.0]  # Initial guesses for parameters
+    interactive_plot(x, func, params, parnames=['A = ','omega = '], fig=fig, ax=ax, label='model',parstart=parstart)
+    ax.legend()
+    plt.show()
+
+#### EXAMPLE 3 (Fitting two models simultaneously to data):
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from interactive_plot import *
+    def func(x,param): return np.vstack((param[0]*np.sin(param[1]*x),param[0]*np.cos(param[1]*x)))
+    x      = np.linspace(0,2*np.pi,100)
+    data   = 0.5*np.sin(2.*x)*(1.0+0.6*np.random.normal(size=len(x)))
+    fig    = plt.figure(1)
+    ax     = plt.axes(xlim=(x.min(),x.max()),ylim=(-1.2,1.2))
+    axd,   = ax.plot(x,data,'o',label='data')
+    axm0,  = ax.plot(x,data,'--',label='sin')
+    axm1,  = ax.plot(x,data,':',label='cos')
+    axmodel= [axm0,axm1]
+    plt.xlabel('x [cm]')
+    plt.ylabel('f [erg/s]')
+    params = [np.linspace(0.1,1.,30),np.linspace(1.,3.,30)]
+    interactive_plot(x, func, params, parnames=['A = ','omega = '], fig=fig, ax=ax, axmodel=axmodel)
+    ax.legend()
+    plt.show()
+
+#### EXAMPLE 3-a (Fitting two models in two separate plots simultaneously):
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from interactive_plot import *
+    def func(x,param): return np.vstack((param[0]*np.sin(param[1]*x),param[0]*np.cos(param[1]*x)))
+    x         = np.linspace(0,2*np.pi,100)
+    data      = 0.5*np.sin(2.*x)*(1.0+0.6*np.random.normal(size=len(x)))
+    extent    = [x.min(),x.max(),-1.2,1.2]
+    fig, axes = plt.subplots(ncols=2)
+    axes[0].axis(extent)
+    axes[1].axis(extent)
+    axd0,  = axes[0].plot(x,data,'o',label='data')
+    axm0,  = axes[0].plot(x,data,'--',label='sin')
+    axd1,  = axes[1].plot(x,data,'o',label='data')
+    axm1,  = axes[1].plot(x,data,':',label='cos')
+    axmodel= [axm0,axm1]
+    params = [np.linspace(0.1,1.,30),np.linspace(1.,3.,30)]
+    interactive_plot(x, func, params, parnames=['A = ','omega = '], fig=fig, ax=0, axmodel=axmodel)
+    plt.show()
+
+#### EXAMPLE 4: (passing additional fixed parameters to function):
+
+    from interactive_plot import *
+    def func(x,param,fixedpar={}): return param[0]*np.sin(param[1]*x)+fixedpar['offset']
+    x      = np.linspace(0,2*np.pi,100)
+    params = [np.linspace(0.1,1.,30),np.linspace(1.,3.,30)] # Choices of parameter values
+    interactive_plot(x, func, params, ymax=1., ymin=-1., parnames=['A = ','omega = '],fixedpar={'offset':0.6})
+
+### Package dependencies
+
+`numpy`, `matplotlib`
