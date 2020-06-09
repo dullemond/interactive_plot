@@ -1,11 +1,11 @@
-# Interactive Plot
+# Interactive Plot and Viewarr
 
 ### Purpose
 
-This Python script allows you to quickly create a Graphical User Interface
-to a figure plotting 1-D function, given a set of parameters. The parameters
-are then represented as sliders below the figure, and you can then see how
-the function changes as a function of the parameters.
+The Python script interactive_plot.py allows you to quickly create a Graphical
+User Interface to a figure plotting 1-D function, given a set of parameters. The
+parameters are then represented as sliders below the figure, and you can then
+see how the function changes as a function of the parameters.
 
 The function can be anything, even the outcome of a complicated model. As
 long as you can package your model into a Python function, with a 1-D
@@ -15,7 +15,13 @@ and one or more values as output.
 The purpose of interactive_plot.py is to make it easier to investigate how the
 results of simple (= quick-to-calculate) models are dependent on the parameters.
 
-### Examples
+As an add-on to interactive_plot.py this package also contain the script
+viewarr.py, which allows you to very quickly plot 1-D cuts through an
+N-dimensional numpy array, scanning the other dimensions with sliders. It can be
+helpful to get a better insight into the data in a complex high-dimensional
+array. 
+
+### Examples of use of interactive_plot.py
 
 #### Example 1 (a simple function with one parameter):
 
@@ -134,6 +140,34 @@ results of simple (= quick-to-calculate) models are dependent on the parameters.
     x      = np.linspace(0,2*np.pi,100)
     params = [np.linspace(0.1,1.,30),np.linspace(1.,3.,30)] # Choices of parameter values
     interactive_plot(x, func, params, ymax=1., ymin=-1., parnames=['A = ','omega = '],fixedpar={'offset':0.6})
+
+### Examples of use of viewarr.py
+
+#### EXAMPLE 1:
+    from viewarr import *
+    data=np.arange(64).reshape((4,4,4)) # Dummy dataset
+    viewarr(data)
+
+#### EXAMPLE 2:
+    from viewarr import *
+    data=np.arange(64).reshape((4,4,4)) # Dummy dataset
+    viewarr(data,index=1)
+
+#### EXAMPLE 3:
+    from viewarr import *
+    data=np.arange(64).reshape((4,4,4)) # Dummy dataset
+    viewarr(data,index=1,idxnames=['ix','iy','iz'])
+
+#### EXAMPLE 4:
+    from viewarr import *
+    data=np.arange(64).reshape((4,4,4)) # Dummy dataset
+    viewarr(data,index=1,idxnames=['x','y','z'],idxvals=[['a','b','c','d'],[-3,-1,1,3],[1.0,2.0,3.0,4.0]])
+
+#### EXAMPLE 5:
+    from viewarr import *
+    data1=np.arange(64).reshape((4,4,4)) # Dummy dataset
+    data2=64-data1
+    viewarr([data1,data2],index=1,idxnames=['x','y','z'],idxvals=[['a','b','c','d'],[-3,-1,1,3],[1.0,2.0,3.0,4.0]],ylabel=['Bla','adfsd'])
 
 ### Package dependencies
 
