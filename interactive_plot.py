@@ -6,7 +6,11 @@
 #
 import numpy as np
 
-def interactive_plot(x, func, params, ymin=None, ymax=None, parnames=None, parunits=None, fig=None, ax=None, axmodel=None, parstart=None, iparstart=None, plotbutton=False, fixedpar=None, returnipar=False, block=False, paramsalt=None, altformat='', **kwargs):
+def interactive_plot(x, func, params, ymin=None, ymax=None, parnames=None, parunits=None, \
+                     fig=None, ax=None, axmodel=None, parstart=None, iparstart=None,      \
+                     plotbutton=False, fixedpar=None, returnipar=False, block=False,      \
+                     paramsalt=None, altformat='', img_x=None, img_y=None, img_func=None, \
+                     img_im=None, **kwargs):
     """
     Plot the function func(x) with parameters given by the params
     list of lists. 
@@ -147,6 +151,37 @@ def interactive_plot(x, func, params, ymin=None, ymax=None, parnames=None, parun
     x      = np.linspace(0,2*np.pi,100)
     params = [np.linspace(0.1,1.,30),np.linspace(1.,3.,30)] # Choices of parameter values
     interactive_plot(x, func, params, ymax=1., ymin=-1., parnames=['A = ','omega = '],fixedpar={'offset':0.6})
+
+    EXAMPLE 5: (Interactive image, i.e. 2D slice from a higher-dimensional data box)
+    import numpy as np
+    from interactive_plot import *
+    from matplotlib import cm
+    from matplotlib import colors
+    import matplotlib.pyplot as plt
+    from matplotlib.image import NonUniformImage
+    x        = np.linspace(-1,1,20)
+    y        = np.linspace(-1,1,30)
+    z        = np.linspace(0,1,25)
+    xx,yy,zz = np.meshgrid(x,y,z,indexing='ij')
+    rr       = np.sqrt(xx**2+yy**2)
+    f        = np.sin(xx*2*np.pi)*yy*(1-zz)+np.cos(2*np.pi*rr)*zz
+    norm     = colors.Normalize(vmin=f.min(),vmax=f.max())
+    cmap     = cm.hot
+    fig,ax   = plt.subplots()
+    im       = NonUniformImage(ax,interpolation='nearest',cmap=cmap,norm=norm)
+    im.set_data(x,y,f[:,:,0].T)
+    ax.images.append(im)
+    ax.set_xlim((x[0]-0.5*(x[1]-x[0]),x[-1]+0.5*(x[-1]-x[-2])))
+    ax.set_ylim((y[0]-0.5*(y[1]-y[0]),y[-1]+0.5*(y[-1]-y[-2])))
+    cbar=fig.colorbar(cm.ScalarMappable(norm=norm,cmap=cmap), ax=ax)
+    cbar.set_label(r'$T\;[\mathrm{K}]$')
+    def img_func(param,fixedpar={}): return fixedpar['f'][:,:,param[0]]
+    params = [np.arange(25)] # Choices of parameter values
+    fixedpar = {}
+    fixedpar["f"]=f
+    interactive_plot(None, None, params, fixedpar=fixedpar,       \
+                     img_x=x,img_y=y,img_func=img_func,img_im=im, \
+                     fig=fig,ax=ax)
     
     """
     import matplotlib.pyplot as plt
@@ -198,28 +233,46 @@ def interactive_plot(x, func, params, ymin=None, ymax=None, parnames=None, parun
     par = []
     for i in range(len(params)):
         par.append(params[i][indexinit[i]])
-    if fixedpar is not None:
-        f = func(x,par,fixedpar=fixedpar)
-    else:
-        f = func(x,par)
-
-    # set range
-    if ymin is None: ymin = f.min()
-    if ymax is None: ymax = f.max()
+    xmin = None
+    xmax = None
+    if x is not None:
+        if xmin is None: xmin = x.min()
+        if xmax is None: xmax = x.max()
+    if func is not None:
+        if fixedpar is not None:
+            f = func(x,par,fixedpar=fixedpar)
+        else:
+            f = func(x,par)
+        # set range
+        if ymin is None: ymin = f.min()
+        if ymax is None: ymax = f.max()
+    if img_y is not None:
+        if ymin is None: ymin = img_y.min()
+        if ymax is None: ymax = img_y.max()
+        if ymin>img_y.min(): ymin = img_y.min()
+        if ymax<img_y.max(): ymax = img_y.max()
+    if img_x is not None:
+        if xmin is None: xmin = img_x.min()
+        if xmax is None: xmax = img_x.max()
+        if xmin>img_x.min(): xmin = img_x.min()
+        if xmax<img_x.max(): xmax = img_x.max()
+    assert (xmin is not None) or (xmax is not None) , 'Error: x undefined'
+    assert (ymin is not None) or (ymay is not None) , 'Error: y undefined'
     
     # display function(s)
-    if ax is None:      ax       = plt.axes(xlim=(x.min(),x.max()),ylim=(ymin,ymax))
+    if ax is None:      ax       = plt.axes(xlim=(xmin,xmax),ylim=(ymin,ymax))
     if axmodel is None:
-        if len(f.shape)==1:
-            # Normal case: a single model function
-            axmodel, = ax.plot(x,f,**kwargs)
-        else:
-            # Special case: multiple model functions: f[imodel,:]
-            assert len(f.shape)==2, 'Model returns array with more than 2 dimensions. No idea what to do.'
-            axmodel = []
-            for i in range(f.shape[0]):
-                axm, = ax.plot(x,f[i,:],**kwargs)
-                axmodel.append(axm)
+        if func is not None:
+            if len(f.shape)==1:
+                # Normal case: a single model function
+                axmodel, = ax.plot(x,f,**kwargs)
+            else:
+                # Special case: multiple model functions: f[imodel,:]
+                assert len(f.shape)==2, 'Model returns array with more than 2 dimensions. No idea what to do.'
+                axmodel = []
+                for i in range(f.shape[0]):
+                    axm, = ax.plot(x,f[i,:],**kwargs)
+                    axmodel.append(axm)
             
     sliders = []
     for i in range(len(params)):
@@ -244,7 +297,8 @@ def interactive_plot(x, func, params, ymin=None, ymax=None, parnames=None, parun
         pbutton = None
 
     class callbackplot(object):
-        def __init__(self,x,func,params,sliders,pbutton=None,fixedpar=None,ipar=None):
+        def __init__(self,x,func,params,sliders,pbutton=None,fixedpar=None,ipar=None, \
+                     img_x=None, img_y=None, img_func=None, img_im=None):
             self.x        = x
             self.func     = func
             self.params   = params
@@ -254,6 +308,10 @@ def interactive_plot(x, func, params, ymin=None, ymax=None, parnames=None, parun
             self.parunits = parunits
             self.paramsalt= paramsalt
             self.altformat= altformat
+            self.img_x    = img_x
+            self.img_y    = img_y
+            self.img_func = img_func
+            self.img_im   = img_im
             self.closed   = False
             if ipar is None:
                 self.ipar = np.zeros(len(sliders),dtype=int)
@@ -285,16 +343,25 @@ def interactive_plot(x, func, params, ymin=None, ymax=None, parnames=None, parun
                     self.sliders[i].label.set_text(name)
             return par
         def myreplot(self,par):
-            x = self.x
-            if self.fixedpar is not None:
-                f = self.func(x,par,fixedpar=self.fixedpar)
-            else:
-                f = self.func(x,par)
-            if len(f.shape)==1:
-                axmodel.set_data(x,f)
-            else:
-                for i in range(f.shape[0]):
-                    axmodel[i].set_data(x,f[i,:])
+            if self.x is not None and self.func is not None:
+                x = self.x
+                if self.fixedpar is not None:
+                    f = self.func(x,par,fixedpar=self.fixedpar)
+                else:
+                    f = self.func(x,par)
+                if len(f.shape)==1:
+                    axmodel.set_data(x,f)
+                else:
+                    for i in range(f.shape[0]):
+                        axmodel[i].set_data(x,f[i,:])
+            if self.img_x is not None and self.img_y is not None and self.img_func is not None and self.img_im is not None:
+                x = self.img_x
+                y = self.img_y
+                if self.fixedpar is not None:
+                    z = self.img_func(par,fixedpar=self.fixedpar)
+                else:
+                    z = self.img_func(par)
+                self.img_im.set_data(x,y,z.T)
             plt.draw()
         def mysupdate(self,event):
             par = self.myreadsliders()
@@ -306,7 +373,8 @@ def interactive_plot(x, func, params, ymin=None, ymax=None, parnames=None, parun
             self.myreplot(par)
             if self.pbutton is not None: self.pbutton.label.set_text('Plot')
 
-    mcb = callbackplot(x,func,params,sliders,pbutton=pbutton,fixedpar=fixedpar,ipar=indexinit)
+    mcb = callbackplot(x,func,params,sliders,pbutton=pbutton,fixedpar=fixedpar,ipar=indexinit, \
+                       img_x=img_x,img_y=img_y,img_func=img_func,img_im=img_im)
 
     mcb.mybupdate(0)
 
