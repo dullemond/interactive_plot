@@ -152,7 +152,7 @@ def interactive_plot(x, func, params, ymin=None, ymax=None, parnames=None, parun
     params = [np.linspace(0.1,1.,30),np.linspace(1.,3.,30)] # Choices of parameter values
     interactive_plot(x, func, params, ymax=1., ymin=-1., parnames=['A = ','omega = '],fixedpar={'offset':0.6})
 
-    EXAMPLE 5: (Interactive image, i.e. 2D slice from a higher-dimensional data box)
+    EXAMPLE 5: (Interactive image, e.g. 2D slice from a higher-dimensional data box)
     import numpy as np
     from interactive_plot import *
     from matplotlib import cm

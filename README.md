@@ -141,6 +141,38 @@ array.
     params = [np.linspace(0.1,1.,30),np.linspace(1.,3.,30)] # Choices of parameter values
     interactive_plot(x, func, params, ymax=1., ymin=-1., parnames=['A = ','omega = '],fixedpar={'offset':0.6})
 
+#### EXAMPLE 5: (Interactive image, e.g. 2D slice from a higher-dimensional data box):
+
+    import numpy as np
+    from interactive_plot import *
+    from matplotlib import cm
+    from matplotlib import colors
+    import matplotlib.pyplot as plt
+    from matplotlib.image import NonUniformImage
+    x        = np.linspace(-1,1,20)
+    y        = np.linspace(-1,1,30)
+    z        = np.linspace(0,1,25)
+    xx,yy,zz = np.meshgrid(x,y,z,indexing='ij')
+    rr       = np.sqrt(xx**2+yy**2)
+    f        = np.sin(xx*2*np.pi)*yy*(1-zz)+np.cos(2*np.pi*rr)*zz
+    norm     = colors.Normalize(vmin=f.min(),vmax=f.max())
+    cmap     = cm.hot
+    fig,ax   = plt.subplots()
+    im       = NonUniformImage(ax,interpolation='nearest',cmap=cmap,norm=norm)
+    im.set_data(x,y,f[:,:,0].T)
+    ax.images.append(im)
+    ax.set_xlim((x[0]-0.5*(x[1]-x[0]),x[-1]+0.5*(x[-1]-x[-2])))
+    ax.set_ylim((y[0]-0.5*(y[1]-y[0]),y[-1]+0.5*(y[-1]-y[-2])))
+    cbar=fig.colorbar(cm.ScalarMappable(norm=norm,cmap=cmap), ax=ax)
+    cbar.set_label(r'$T\;[\mathrm{K}]$')
+    def img_func(param,fixedpar={}): return fixedpar['f'][:,:,param[0]]
+    params = [np.arange(25)] # Choices of parameter values
+    fixedpar = {}
+    fixedpar["f"]=f
+    interactive_plot(None, None, params, fixedpar=fixedpar,       \
+                     img_x=x,img_y=y,img_func=img_func,img_im=im, \
+                     fig=fig,ax=ax)
+
 ### Examples of use of viewarr.py
 
 #### EXAMPLE 1:
