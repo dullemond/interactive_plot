@@ -1,6 +1,6 @@
 from interactive_plot import *
 
-def viewarr(data,index=0,x=None,ymin=None,ymax=None,ylabel=None,idxnames=None,idxvals=None,idxformat=''):
+def viewarr(data,index=0,x=None,ymin=None,ymax=None,ylabel=None,idxnames=None,idxvals=None,idxformat='',iparstart=None):
     """
     Interactive plot of a 1-D cut from an n-dimensional array.
 
@@ -133,4 +133,4 @@ def viewarr(data,index=0,x=None,ymin=None,ymax=None,ylabel=None,idxnames=None,id
         ax.legend()
     else:
         axmodel = None
-    interactive_plot(x, func, params, ymin=ymin, ymax=ymax, parnames=parnames, parunits=None, fig=fig, ax=ax, axmodel=axmodel, parstart=None, iparstart=None, plotbutton=False, fixedpar=None, returnipar=False, block=False, paramsalt=paramsalt, altformat=idxformat)
+    interactive_plot(x, func, params, ymin=ymin, ymax=ymax, parnames=parnames, parunits=None, fig=fig, ax=ax, axmodel=axmodel, parstart=None, iparstart=iparstart, plotbutton=False, fixedpar=None, returnipar=False, block=False, paramsalt=paramsalt, altformat=idxformat)
