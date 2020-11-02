@@ -10,7 +10,7 @@ def interactive_plot(x, func, params, ymin=None, ymax=None, parnames=None, parun
                      fig=None, ax=None, axmodel=None, parstart=None, iparstart=None,      \
                      plotbutton=False, fixedpar=None, returnipar=False, block=False,      \
                      paramsalt=None, altformat='', img_x=None, img_y=None, img_func=None, \
-                     img_im=None, **kwargs):
+                     img_im=None, parformats=None, **kwargs):
     """
     Plot the function func(x) with parameters given by the params
     list of lists. 
@@ -37,6 +37,7 @@ def interactive_plot(x, func, params, ymin=None, ymax=None, parnames=None, parun
       parstart   If set, set the sliders initially close to these values
       iparstart  If set, set the slider index values initially to these values
                  (note: iparstart is an alternative to parstart)
+      parformats If set, a list of format strings to use for displaying the parameter values
       paramsalt  If set, then instead of the params values, the paramsalt values 
                  will be written after '=' (only if parnames is set, see above).
       returnipar If True, then return ipar
@@ -306,6 +307,7 @@ def interactive_plot(x, func, params, ymin=None, ymax=None, parnames=None, parun
             self.pbutton  = pbutton
             self.fixedpar = fixedpar
             self.parunits = parunits
+            self.parformats= parformats
             self.paramsalt= paramsalt
             self.altformat= altformat
             self.img_x    = img_x
@@ -339,7 +341,12 @@ def interactive_plot(x, func, params, ymin=None, ymax=None, parnames=None, parun
                             valunit = self.parunits[i]
                         else:
                             valunit = 1.0
-                        name = namebase + "= {0:13.6e}".format(value/valunit)
+                        if self.parformats is not None:
+                            fmt = self.parformats[i]
+                        else:
+                            fmt = '13.6e'
+                        name = namebase + "= {0:"+fmt+"}"
+                        name = name.format(value/valunit)
                     self.sliders[i].label.set_text(name)
             return par
         def myreplot(self,par):
