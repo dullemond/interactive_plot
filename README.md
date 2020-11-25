@@ -97,7 +97,7 @@ array.
     ax.legend()
     plt.show()
 
-![Example 2b](/screenshots/example_2b.png)
+![Example 2b](/screenshots/example_2a.png)
 
 #### EXAMPLE 3 (Fitting two models simultaneously to data):
 
