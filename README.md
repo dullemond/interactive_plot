@@ -31,6 +31,8 @@ array.
     params = [np.linspace(0.1,1.,30),np.linspace(1.,3.,30)] # Choices of parameter values
     interactive_plot(x, func, params, ymax=1., ymin=-1., parnames=['A = ','omega = '])
 
+![Example 1](/screenshots/example_1.png)
+
 #### Example 1-a (As above, but now with a plotting button instead of automatic replot; useful for heavier models):
 
     from interactive_plot import *
@@ -38,6 +40,8 @@ array.
     x      = np.linspace(0,2*np.pi,100)
     params = [np.linspace(0.1,1.,30),np.linspace(1.,3.,30)] # Choices of parameter values
     interactive_plot(x, func, params, ymax=1., ymin=-1., parnames=['A = ','omega = '],plotbutton=True)
+
+![Example 1a](/screenshots/example_1a.png)
 
 #### EXAMPLE 1-b (Plotting the content of a pre-calculated 2-D array):
 
@@ -69,6 +73,8 @@ array.
     ax.legend()
     plt.show()
 
+![Example 2](/screenshots/example_2.png)
+
 #### EXAMPLE 2-a (Model overplotting over an image):
 
     import numpy as np
@@ -91,6 +97,8 @@ array.
     ax.legend()
     plt.show()
 
+![Example 2b](/screenshots/example_2b.png)
+
 #### EXAMPLE 3 (Fitting two models simultaneously to data):
 
     import numpy as np
@@ -112,6 +120,8 @@ array.
     ax.legend()
     plt.show()
 
+![Example 3](/screenshots/example_3.png)
+
 #### EXAMPLE 3-a (Fitting two models in two separate plots simultaneously):
 
     import numpy as np
@@ -132,6 +142,8 @@ array.
     params = [np.linspace(0.1,1.,30),np.linspace(1.,3.,30)]
     interactive_plot(x, func, params, parnames=['A = ','omega = '], fig=fig, ax=0, axmodel=axmodel)
     plt.show()
+
+![Example 3a](/screenshots/example_3a.png)
 
 #### EXAMPLE 4: (passing additional fixed parameters to function):
 
@@ -172,6 +184,8 @@ array.
     interactive_plot(None, None, params, fixedpar=fixedpar,       \
                      img_x=x,img_y=y,img_func=img_func,img_im=im, \
                      fig=fig,ax=ax)
+
+![Example 5](/screenshots/example_5.png)
 
 ### Examples of use of viewarr.py
 
