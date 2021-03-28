@@ -666,3 +666,209 @@ def interactive_curve(t, func, params, xmin=None, xmax=None, ymin=None, ymax=Non
         plt.show(block=True)
     if returnipar:
         return mcb.ipar
+
+def interactive_anything(update, params, parnames=None, parunits=None, fig=None, ax=None, axmodel=None, parstart=None, iparstart=None, plotbutton=False, fixedpar=None, returnipar=False, block=False, **kwargs):
+    """
+    This is an even more general interactive plotting tool: Here you create
+    your own plot and your own update function, and all that the tool does
+    is call your update function whenever necessary, with the parameters
+    given by the sliders. This gives you full flexibility to animate any
+    matplotlib object (or set of objects) in any way you wish.
+
+    ARGUMENTS:
+      update     The update function update(params)
+      params     List of parameters, but with each parameter value
+                 here given as a list of possible values.
+
+    OPTIONAL ARGUMENTS:
+      parnames   Names of the params, e.g. ['A', 'omega']
+                 If the parnames have an '=' sign (e.g. ['A = ', 'omega = '])
+                 then the value of the parameters are written out.
+      parunits   If set, a list of values by which the parameter values are divided
+                 before being printed on the widget (only if parnames have '=').
+                 It only affects the printing next to the sliders, and has no
+                 other effect.
+      fig        A pre-existing figure
+      ax         A pre-existing axis
+      axmodel    A list of objects to animate
+      parstart   If set, set the sliders initially close to these values
+      iparstart  If set, set the slider index values initially to these values
+                 (note: iparstart is an alternative to parstart)
+      returnipar If True, then return ipar
+      block      If True, then wait until window is closed
+
+    EXAMPLE 1 (two ellipses: Identical to EXAMPLE 2 of interactive_curve()):
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from interactive_plot_new import *
+    def func(t,param):
+        x   = param[0]*np.cos(t)
+        y   = param[1]*np.sin(t)
+        csw = np.cos(param[2])
+        snw = np.sin(param[2])
+        return np.vstack((csw*x-snw*y,-csw*x-snw*y)),np.vstack((snw*x+csw*y,snw*x+csw*y))
+    def update(param,ax=None,axmodel=None,fixedpar={}):
+        t      = np.linspace(0,2*np.pi,100)
+        x,y    = fixedpar['func'](t,param)
+        axmodel[0].set_data(x[0,:],y[0,:])
+        axmodel[1].set_data(x[1,:],y[1,:])
+        plt.draw()
+    t      = np.linspace(0,2*np.pi,100)
+    params = [np.linspace(0.1,1.,30),np.linspace(0.1,1.,30),np.linspace(0.,np.pi,30)]
+    fig    = plt.figure(1)
+    ax     = plt.axes(xlim=(-1.2,1.2),ylim=(-1.2,1.2))
+    x,y    = func(t,[1.,1.,1.])
+    axm0,  = ax.plot(x[0,:],y[0,:],'--',label='left')
+    axm1,  = ax.plot(x[1,:],y[1,:],':',label='right')
+    axmodel= [axm0,axm1]
+    fixedpar = {'func':func}
+    interactive_anything(update, params, parnames=['Ax = ','Ay = ','omega = '],iparstart=[10,15,12], fig=fig, ax=ax, axmodel=axmodel, fixedpar=fixedpar)
+
+    """
+    import matplotlib.pyplot as plt
+    from matplotlib.widgets import Slider, Button, RadioButtons
+
+    # Compute spacing of plot, sliders and button
+    hslider  = 0.03
+    nslidrscl= 6
+    if(len(params)>nslidrscl):
+        hslider *= float(nslidrscl)/len(params)
+    dyslider = hslider*(4./3.)
+    xslider  = 0.3
+    wslider  = 0.3
+    hbutton  = 0.06
+    wbutton  = 0.15
+    xbutton  = 0.3
+    dybutton = hbutton+0.01
+    panelbot = 0.0
+    controlh = panelbot + len(params)*dyslider
+    if plotbutton: controlh += dybutton
+    controltop = panelbot + controlh
+    bmargin  = 0.15
+
+    # Checks
+    assert fig is not None, "Must set fig=..."
+    assert ax is not None, "Must set ax=..."
+    assert axmodel is not None, "Must set axmodel=..."
+    assert type(axmodel) is list, "axmodel must be a list of axis objects"
+
+    # Adjust
+    fig.subplots_adjust(top=0.95,bottom=controltop+bmargin)
+
+    # Set the initial values
+    indexinit = np.zeros(len(params),dtype=int)
+    if parstart is not None:
+        for i in range(len(params)):
+            if parstart[i] in params[i]:
+                idx = np.where(np.array(params[i])==parstart[i])[0]
+                if len(idx)>0:
+                    indexinit[i] = idx[0]
+            else:
+                if params[i][-1]>params[i][0]:
+                    idx = np.where(np.array(params[i])<parstart[i])[0]
+                    if len(idx)>0:
+                        indexinit[i] = idx[-1]
+                else:
+                    idx = np.where(np.array(params[i])>parstart[i])[0]
+                    if len(idx)>0:
+                        indexinit[i] = idx[0]
+    if iparstart is not None:
+        indexinit[:] = iparstart[:]
+
+    # select first image
+    par = []
+    for i in range(len(params)):
+        par.append(params[i][indexinit[i]])
+    if fixedpar is not None:
+        update(par,ax=ax,axmodel=axmodel,fixedpar=fixedpar)
+    else:
+        update(par,ax=ax,axmodel=axmodel)
+
+    sliders = []
+    for i in range(len(params)):
+
+        # define slider
+        axcolor = 'lightgoldenrodyellow'
+        axs = fig.add_axes([xslider, controltop-i*dyslider, xslider+wslider, hslider], facecolor=axcolor)
+
+        if parnames is not None:
+            name = parnames[i]
+        else:
+            name = 'Parameter {0:d}'.format(i)
+
+        slider = Slider(axs, name, 0, len(params[i]) - 1,
+                    valinit=indexinit[i], valfmt='%i')
+        sliders.append(slider)
+
+    if plotbutton:
+        axb = fig.add_axes([xbutton, panelbot+0.2*hbutton, xbutton+wbutton, hbutton])
+        pbutton = Button(axb,'Plot')
+    else:
+        pbutton = None
+
+    class callbackanything(object):
+        def __init__(self,update,params,sliders,pbutton=None,fixedpar=None,ipar=None,ax=None,axmodel=None):
+            self.update   = update
+            self.params   = params
+            self.sliders  = sliders
+            self.pbutton  = pbutton
+            self.fixedpar = fixedpar
+            self.parunits = parunits
+            self.ax       = ax
+            self.axmodel  = axmodel
+            self.closed   = False
+            if ipar is None:
+                self.ipar = np.zeros(len(sliders),dtype=int)
+            else:
+                self.ipar = ipar
+        def handle_close(self,event):
+            self.closed   = True
+        def myreadsliders(self):
+            for isl in range(len(self.sliders)):
+                ind = int(self.sliders[isl].val)
+                self.ipar[isl]=ind
+            par = []
+            for i in range(len(self.ipar)):
+                ip = self.ipar[i]
+                value = self.params[i][ip]
+                par.append(value)
+                name = self.sliders[i].label.get_text()
+                if '=' in name:
+                    namebase = name.split('=')[0]
+                    if self.parunits is not None:
+                        valunit = self.parunits[i]
+                    else:
+                        valunit = 1.0
+                    name = namebase + "= {0:13.6e}".format(value/valunit)
+                    self.sliders[i].label.set_text(name)
+            return par
+        def myreplot(self,par):
+            if self.fixedpar is not None:
+                self.update(par,ax=self.ax,axmodel=self.axmodel,fixedpar=self.fixedpar)
+            else:
+                self.update(par,ax=self.ax,axmodel=self.axmodel)
+        def mysupdate(self,event):
+            par = self.myreadsliders()
+            if self.pbutton is None: self.myreplot(par)
+        def mybupdate(self,event):
+            par = self.myreadsliders()
+            if self.pbutton is not None: self.pbutton.label.set_text('Computing...')
+            plt.pause(0.01)
+            self.myreplot(par)
+            if self.pbutton is not None: self.pbutton.label.set_text('Plot')
+
+    mcb = callbackanything(update,params,sliders,pbutton=pbutton,fixedpar=fixedpar,ipar=indexinit,ax=ax,axmodel=axmodel)
+
+    mcb.mybupdate(0)
+
+    if plotbutton:
+        pbutton.on_clicked(mcb.mybupdate)
+    for s in sliders:
+        s.on_changed(mcb.mysupdate)
+
+    fig._mycallback    = mcb
+
+    if block:
+        plt.show(block=True)
+    if returnipar:
+        return mcb.ipar
