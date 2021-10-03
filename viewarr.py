@@ -1,6 +1,8 @@
 from interactive_plot import *
 
-def viewarr(data,index=0,x=None,ymin=None,ymax=None,ylabel=None,idxnames=None,idxvals=None,idxformat='',iparstart=None):
+def viewarr(data,index=0,x=None,ymin=None,ymax=None,ylabel=None,    \
+            idxnames=None,idxvals=None,idxformat='',iparstart=None, \
+            fig=None, ax=None):
     """
     Interactive plot of a 1-D cut from an n-dimensional array.
 
@@ -94,8 +96,6 @@ def viewarr(data,index=0,x=None,ymin=None,ymax=None,ylabel=None,idxnames=None,id
             paramsalt.append(idxvals[idxorder[i]])
     else:
         paramsalt = None
-    fig = None
-    ax  = None
     if idxnames is None:
         parnames = []
         for i in range(ndim-1):
@@ -107,8 +107,8 @@ def viewarr(data,index=0,x=None,ymin=None,ymax=None,ylabel=None,idxnames=None,id
         for i in range(ndim-1):
             parnames.append(idxnames[idxorder[i]]+" =")
         xname    = idxnames[index]
-    fig = plt.figure()
-    ax  = plt.axes(xlim=(x.min(),x.max()),ylim=(ymin,ymax))
+    if fig is None: fig = plt.figure()
+    if ax is None:  ax  = plt.axes(xlim=(x.min(),x.max()),ylim=(ymin,ymax))
     ax.set_xlabel(xname)
     if ylabel is not None:
         if type(ylabel)==list:
