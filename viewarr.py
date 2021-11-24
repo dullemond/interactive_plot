@@ -134,3 +134,64 @@ def viewarr(data,index=0,x=None,ymin=None,ymax=None,ylabel=None,    \
     else:
         axmodel = None
     interactive_plot(x, func, params, ymin=ymin, ymax=ymax, parnames=parnames, parunits=None, fig=fig, ax=ax, axmodel=axmodel, parstart=None, iparstart=iparstart, plotbutton=False, fixedpar=None, returnipar=False, block=False, paramsalt=paramsalt, altformat=idxformat)
+
+
+def slicearr(data,indices=(0,1),x=None,y=None,zmin=None,zmax=None,idxnames=None,idxvals=None,idxformat=''):
+    """
+    Interactive plot of a 2-D slice from an n-dimensional array.
+
+    EXAMPLE 1:
+    from viewarr import *
+    data=np.arange(64).reshape((4,4,4)) # Dummy dataset
+    slicearr(data,indices=(0,1))
+    """
+    import matplotlib.pyplot as plt
+    from matplotlib.image import NonUniformImage
+    from matplotlib import cm
+    from matplotlib import colors
+    def img_func(param,fixedpar={}):
+        if fixedpar['npar']==1: image = fixedpar['f'][:,:,param[0]]
+        if fixedpar['npar']==2: image = fixedpar['f'][:,:,param[0],param[1]]
+        if fixedpar['npar']==3: image = fixedpar['f'][:,:,param[0],param[1],param[2]]
+        if fixedpar['npar']==4: image = fixedpar['f'][:,:,param[0],param[1],param[2],param[3]]
+        if fixedpar['npar']==5: image = fixedpar['f'][:,:,param[0],param[1],param[2],param[3],param[4]]
+        return image
+    npar = len(data.shape)-2
+    assert npar>0, 'Array must be 3D or higher dimension.'
+    nx = data.shape[indices[0]]
+    ny = data.shape[indices[1]]
+    paridx = list(np.arange(len(data.shape)))
+    paridx.remove(indices[0])
+    paridx.remove(indices[1])
+    parsiz=[]
+    for i in range(len(paridx)):
+        parsiz.append(data.shape[paridx[i]])
+    if x is None: x = np.arange(nx)
+    if y is None: y = np.arange(ny)
+    if zmin is None: zmin=data.min()
+    if zmax is None: zmax=data.max()
+    norm     = colors.Normalize(vmin=zmin,vmax=zmax)
+    cmap     = cm.hot
+    fig,ax   = plt.subplots()
+    im       = NonUniformImage(ax,interpolation='nearest',cmap=cmap,norm=norm)
+    idcs     = [indices[0],indices[1]]
+    for i in range(len(paridx)):
+        idcs.append(paridx[i])
+    datatrns = np.transpose(data,idcs)
+    fixedpar = {}
+    fixedpar['f']=datatrns
+    fixedpar['npar']=npar
+    param = np.zeros(npar,dtype=int)
+    image = img_func(param,fixedpar=fixedpar)
+    im.set_data(x,y,image.T)
+    ax.images.append(im)
+    ax.set_xlim((x[0]-0.5*(x[1]-x[0]),x[-1]+0.5*(x[-1]-x[-2])))
+    ax.set_ylim((y[0]-0.5*(y[1]-y[0]),y[-1]+0.5*(y[-1]-y[-2])))
+    cbar=fig.colorbar(cm.ScalarMappable(norm=norm,cmap=cmap), ax=ax)
+    #cbar.set_label(r'$T\;[\mathrm{K}]$')
+    params = []
+    for i in range(len(paridx)):
+        params.append(np.arange(parsiz[i])) # Choices of parameter values
+    interactive_plot(None, None, params, fixedpar=fixedpar,       \
+                     img_x=x,img_y=y,img_func=img_func,img_im=im, \
+                     fig=fig,ax=ax)
