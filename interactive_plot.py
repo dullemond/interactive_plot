@@ -390,6 +390,25 @@ def interactive_plot(x, func, params, ymin=None, ymax=None, parnames=None, parun
     for s in sliders:
         s.on_changed(mcb.mysupdate)
 
+    # Keyboard control: click on a slider to focus it, then use the left/right
+    # arrow keys to decrease/increase its (index) value by 1
+    active_slider = {'obj': None}
+    def on_slider_click(event):
+        for s in sliders:
+            if event.inaxes == s.ax:
+                active_slider['obj'] = s
+                break
+    def on_key_press(event):
+        s = active_slider['obj']
+        if s is None:
+            return
+        if event.key == 'right':
+            s.set_val(min(s.val + 1, s.valmax))
+        elif event.key == 'left':
+            s.set_val(max(s.val - 1, s.valmin))
+    fig.canvas.mpl_connect('button_press_event', on_slider_click)
+    fig.canvas.mpl_connect('key_press_event', on_key_press)
+
     fig._mycallback    = mcb
 
     if block:
@@ -660,6 +679,25 @@ def interactive_curve(t, func, params, xmin=None, xmax=None, ymin=None, ymax=Non
     for s in sliders:
         s.on_changed(mcb.mysupdate)
 
+    # Keyboard control: click on a slider to focus it, then use the left/right
+    # arrow keys to decrease/increase its (index) value by 1
+    active_slider = {'obj': None}
+    def on_slider_click(event):
+        for s in sliders:
+            if event.inaxes == s.ax:
+                active_slider['obj'] = s
+                break
+    def on_key_press(event):
+        s = active_slider['obj']
+        if s is None:
+            return
+        if event.key == 'right':
+            s.set_val(min(s.val + 1, s.valmax))
+        elif event.key == 'left':
+            s.set_val(max(s.val - 1, s.valmin))
+    fig.canvas.mpl_connect('button_press_event', on_slider_click)
+    fig.canvas.mpl_connect('key_press_event', on_key_press)
+
     fig._mycallback    = mcb
     
     if block:
@@ -865,6 +903,25 @@ def interactive_anything(update, params, parnames=None, parunits=None, fig=None,
         pbutton.on_clicked(mcb.mybupdate)
     for s in sliders:
         s.on_changed(mcb.mysupdate)
+
+    # Keyboard control: click on a slider to focus it, then use the left/right
+    # arrow keys to decrease/increase its (index) value by 1
+    active_slider = {'obj': None}
+    def on_slider_click(event):
+        for s in sliders:
+            if event.inaxes == s.ax:
+                active_slider['obj'] = s
+                break
+    def on_key_press(event):
+        s = active_slider['obj']
+        if s is None:
+            return
+        if event.key == 'right':
+            s.set_val(min(s.val + 1, s.valmax))
+        elif event.key == 'left':
+            s.set_val(max(s.val - 1, s.valmin))
+    fig.canvas.mpl_connect('button_press_event', on_slider_click)
+    fig.canvas.mpl_connect('key_press_event', on_key_press)
 
     fig._mycallback    = mcb
 
